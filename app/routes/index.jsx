@@ -1,4 +1,4 @@
-import GeneticAlgorithmComponent from '../components/GeneticAlgorithmComponent';
+import GeneticAlgorithmComponent from './GeneticAlgorithmComponent';
 
 export default function Index() {
     return (
