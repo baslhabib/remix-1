@@ -1,48 +1,61 @@
 import random
 
+# Parameters
+POPULATION_SIZE = 10
+GENE_LENGTH = 8  # Length of the binary string
+MUTATION_RATE = 0.1  # Probability of mutation
+
+# Fitness function: counts the number of 1's in the binary string
 def fitness_function(individual):
-    # Example fitness function (maximize the sum of the individual's genes)
     return sum(individual)
 
+# Create initial population
+def initialize_population():
+    return [[random.randint(0, 1) for _ in range(GENE_LENGTH)] for _ in range(POPULATION_SIZE)]
+
+# Select parents based on fitness
 def selection(population):
-    # Select individuals based on fitness
-    population.sort(key=fitness_function, reverse=True)
-    return population[:len(population)//2]
+    weighted_population = [(individual, fitness_function(individual)) for individual in population]
+    total_fitness = sum(fitness for _, fitness in weighted_population)
+    probabilities = [fitness / total_fitness for _, fitness in weighted_population]
 
+    return random.choices(population, weights=probabilities, k=2)
+
+# Crossover between two parents to produce an offspring
 def crossover(parent1, parent2):
-    # Simple crossover
-    split = random.randint(1, len(parent1) - 1)
-    return parent1[:split] + parent2[split:]
+    crossover_point = random.randint(1, GENE_LENGTH - 1)
+    offspring = parent1[:crossover_point] + parent2[crossover_point:]
+    return offspring
 
+# Mutate an individual
 def mutate(individual):
-    # Simple mutation
-    if random.random() < 0.1:  # 10% mutation chance
-        index = random.randint(0, len(individual) - 1)
-        individual[index] = random.randint(0, 1)  # Assuming binary genes
+    for i in range(GENE_LENGTH):
+        if random.random() < MUTATION_RATE:
+            individual[i] = 1 - individual[i]  # Flip bit
     return individual
 
-def run_genetic_algorithm():
-    population_size = 10
-    gene_length = 5
+# Genetic algorithm implementation
+def genetic_algorithm():
+    population = initialize_population()
     generations = 20
 
-    # Initialize population
-    population = [[random.randint(0, 1) for _ in range(gene_length)] for _ in range(population_size)]
+    for generation in range(generations):
+        print(f"Generation {generation}: {population}")
+        new_population = []
 
-    for _ in range(generations):
-        selected = selection(population)
-        offspring = []
+        for _ in range(POPULATION_SIZE):
+            parent1, parent2 = selection(population)
+            offspring = crossover(parent1, parent2)
+            offspring = mutate(offspring)
+            new_population.append(offspring)
 
-        while len(offspring) < population_size:
-            parent1, parent2 = random.sample(selected, 2)
-            child = crossover(parent1, parent2)
-            child = mutate(child)
-            offspring.append(child)
+        population = new_population
 
-        population = selected + offspring  # Replace the old population
+    # Get the best solution
+    best_solution = max(population, key=fitness_function)
+    return best_solution, fitness_function(best_solution)
 
-    return population
-
+# Run the genetic algorithm
 if __name__ == "__main__":
-    final_population = run_genetic_algorithm()
-    print("Final Population:", final_population)
+    best_individual, best_fitness = genetic_algorithm()
+    print(f"Best Individual: {best_individual}, Fitness: {best_fitness}")
